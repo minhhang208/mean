@@ -37,7 +37,10 @@ app.use(stylus.middleware(
 app.use(express.static(__dirname + '/public'));
 
 //connect to mongodb database
-mongoose.connect('mongodb://localhost/mean');
+if (env === 'development')
+    mongoose.connect('mongodb://localhost/mean');
+else
+    mongoose.connect('mongodb://minhhang208:minhhang123@ds047911.mongolab.com:47911/mean');
 //reference to mongodb connection
 var db = mongoose.connection;
 //listen to event
@@ -53,7 +56,7 @@ var messageSchema = mongoose.Schema({
 //create model based on that schema
 var Message = mongoose.model('Message',messageSchema);
 //create variable that's going to hold that data that we pull out of the database
-var mongoMessage = "teteeee";
+var mongoMessage ;
 //return first document in the collection, after data return, have it execute a callback function by call exec function
 Message.findOne().exec(function(err, messageDoc){
     mongoMessage = messageDoc.message;
@@ -74,6 +77,6 @@ app.get('*', function(req, res) {
 });
 
 //tell application to start listening to the request
-var port = 3030;
+var port = process.env.PORT || 3030;
 app.listen(port);
 console.log('Listening on port ' + port + '...');
