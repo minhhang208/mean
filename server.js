@@ -1,54 +1,21 @@
 //Create express application
 var express = require('express'),
-    stylus = require('stylus'),
-    logger = require('morgan'),
-    bodyParser = require('body-parser'),
-    mongoose  =require('mongoose');
+    mongoose  =require('mongoose'),
+    passport = require('passport'),
+    LocalStrategy = require('passport-local').Strategy;
 
 //environment variable that can use in order to determine whether or not in production or development mode
 var env = process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
 //create actual express application
 var app = express();
-//stylus: setup middleware configuration for stylus
-function compile(str,path){
-    return stylus(str).set('filename',path);
-}
 
-//configure view engine
-app.set('views', __dirname + '/server/views');
-//app.engine('html', require('ejs').renderFile);
-//app.set('view engine', 'ejs');
-app.set('view engine', 'jade');
-//turn on express as logging
-app.use(logger('dev'));
-app.use(bodyParser.urlencoded({extended:true}));
-app.use(bodyParser.json());
-app.use(stylus.middleware(
-        {
-            src: __dirname + '/public',
-            compile: compile
-        }
-    )
+var config =require('./server/config/config')[env];
 
-);
-//stylus: setup static routing to our public directory: tell express that anytime any requests come in that match up
-//to a file inside of the public directory, go ahead and serve the file
-app.use(express.static(__dirname + '/public'));
+require('./server/config/express')(app,config);
 
-//connect to mongodb database
-if (env === 'development')
-    mongoose.connect('mongodb://localhost/mean');
-else
-    mongoose.connect('mongodb://minhhang208:minhhang123@ds047911.mongolab.com:47911/mean');
-//reference to mongodb connection
-var db = mongoose.connection;
-//listen to event
-db.on('error',console.error.bind(console,'connection error...'));
-db.once('open', function callback(){
-    console.log('mean db openned');
-});
-
+require('./server/config/mongoose')(config);
+/**
 //create a schema for a collection of message
 var messageSchema = mongoose.Schema({
     message: String
@@ -62,21 +29,39 @@ Message.findOne().exec(function(err, messageDoc){
     mongoMessage = messageDoc.message;
     console.log(mongoMessage);
 });
+*/
+var User = mongoose.model('User');
+passport.use(new LocalStrategy(
+    function(username, password, done) {
+        console.log('start to find');
+        User.findOne({username:username}).exec(function(err, user) {
+            if(user) {
+                return done(null, user);
+            } else {
+                return done(null, false);
+            }
+        })
+    }
+));
 
-app.get('/partials/:partialPath', function(req, res) {
-    res.render('partials/' + req.params.partialPath);
+passport.serializeUser(function(user, done) {
+    if(user) {
+        done(null, user._id);
+    }
 });
 
-
-//add route that delivers index page; asterisk will match all routes (images, javascript, css requests) that don't have
-//existing path for
-app.get('*', function(req, res) {
-    res.render('index',{
-        mongoMessage: mongoMessage
-    });
+passport.deserializeUser(function(id, done) {
+    User.findOne({_id:id}).exec(function(err, user) {
+        if(user) {
+            return done(null, user);
+        } else {
+            return done(null, false);
+        }
+    })
 });
+ require('./server/config/route')(app);
 
 //tell application to start listening to the request
-var port = process.env.PORT || 3030;
-app.listen(port);
-console.log('Listening on port ' + port + '...');
+app.listen(config.port);
+
+console.log('Listening on port ' + config.port + '...');
