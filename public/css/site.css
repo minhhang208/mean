@@ -1,7 +1,7 @@
 /** push down the content of the body
   squish that navbar a little bit **/
 body {
-  padding-top: 85px;
+  padding-top: 69px;
 }
 .navbar-header a.navbar-brand {
   margin-top: -15px;
@@ -22,6 +22,12 @@ p {
   margin-left: 10px;
 }
 .navbar-form button {
+  margin-left: 10px;
+}
+.top-padding-med {
+  padding-top: 10px;
+}
+.margin-left-med {
   margin-left: 10px;
 }
 .toast-top-right {
