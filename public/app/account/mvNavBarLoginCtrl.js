@@ -3,7 +3,7 @@ angular.module('app').controller('mvNavBarLoginCtrl',function($scope, $http, mvI
     $scope.signin = function(username,password){
         mvAuth.authenticateUser(username,password).then(function(success){
             if(success){
-                mvNotifier.notify('You have successfully signed in')
+                mvNotifier.notify('You have successfully signed in');
             }else
             {
                 mvNotifier.notify('Username/password combination incorrect');
@@ -12,7 +12,6 @@ angular.module('app').controller('mvNavBarLoginCtrl',function($scope, $http, mvI
     }
     $scope.signout = function(){
         mvAuth.logoutUser().then(function(){
-            console.log(JSON.stringify(mvIdentity.currentUser));
             $scope.username = "";
             $scope.password ="";
             mvNotifier.notify('You have successfully signed out');
